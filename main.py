@@ -27,7 +27,12 @@ llm = ChatOpenAI(model="gpt-4")
 react_prompt = hub.pull("hwchase17/react")
 agent = create_react_agent(llm, tools, prompt=react_prompt_with_format_instructions)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-chain = agent_executor
+
+extract_output = RunnableLambda(lambda x: x["output"])
+parse_output = RunnableLambda(lambda x: output_parser.parse(x))
+
+chain = agent_executor | extract_output | parse_output
+
 def main():
     print("Hello from langchain-course-react-search-agent!")
     result = chain.invoke({"input": "Return 3 stocks that are recommended for the next 3 months 2025?"})
